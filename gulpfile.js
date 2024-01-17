@@ -159,6 +159,8 @@ export function buildProd (done) {
     removeDist,
     parallel(
       createHTML,
+      createStyles,
+      createStack
       /*processStyles,
       processScripts,
       createStack,
