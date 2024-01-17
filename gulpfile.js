@@ -1,19 +1,18 @@
-import { readFileSync, rmSync } from 'node:fs';
+import { rmSync } from 'node:fs';
 
 import gulp from 'gulp';
 import plumber from 'gulp-plumber';
 import * as dartSass from 'sass';
 import gulpSass from 'gulp-sass';
 import postcss from 'gulp-postcss';
-import postUrl from 'postcss-url';
+import rename from 'gulp-rename';
 import autoprefixer from 'autoprefixer';
 import csso from 'postcss-csso';
 import sortMediaQueries from 'postcss-sort-media-queries';
 import includePartials from 'gulp-file-include';
 import { createGulpEsbuild } from 'gulp-esbuild';
 import browserslistToEsbuild from 'browserslist-to-esbuild';
-import sharp from 'gulp-sharp-responsive';
-import svgo from 'gulp-svgmin';
+import imagemin, {gifsicle, mozjpeg, optipng, svgo} from 'gulp-imagemin';
 import { stacksvg } from 'gulp-stacksvg';
 import server from 'browser-sync';
 import bemlinter from 'gulp-html-bemlinter';
@@ -25,8 +24,6 @@ const PATH_TO_DIST = './dist/';
 const PATHS_TO_STATIC = [
   `${PATH_TO_SOURCE}fonts/**/*.{woff2,woff}`,
   `${PATH_TO_SOURCE}*.ico`,
-  `${PATH_TO_SOURCE}vendor/**/*`,
-  `${PATH_TO_SOURCE}images/**/*`,
   `!${PATH_TO_SOURCE}**/README.md`,
 ];
 let isDevelopment = true;
@@ -52,15 +49,18 @@ export function createStyles () {
       sortMediaQueries(),
       csso()
     ]))
+    .pipe(rename({
+      extname: '.min.css'
+    }))
     .pipe(dest(`${PATH_TO_DIST}styles`, { sourcemaps: isDevelopment }))
     .pipe(server.stream());
 }
 
 /* Работа со скриптами */
-export function processScripts () {
+export function createScripts () {
   const gulpEsbuild = createGulpEsbuild({ incremental: isDevelopment });
 
-  return src(`${PATH_TO_SOURCE}scripts/!*.js`)
+  return src(`${PATH_TO_SOURCE}js/*.js`)
     .pipe(gulpEsbuild({
       bundle: true,
       format: 'esm',
@@ -70,13 +70,8 @@ export function processScripts () {
       sourcemap: isDevelopment,
       target: browserslistToEsbuild(),
     }))
-    .pipe(dest(`${PATH_TO_DIST}scripts`))
+    .pipe(dest(`${PATH_TO_DIST}js`))
     .pipe(server.stream());
-}
-
-export function lintBem () {
-  return src(`${PATH_TO_SOURCE}*.html`)
-    .pipe(bemlinter());
 }
 
 /* Создание stack файла */
@@ -86,11 +81,30 @@ export function createStack () {
     .pipe(dest(`${PATH_TO_DIST}images`));
 }
 
-/* Оптимизация векторных картинок */
-export function optimizeVector () {
-  return src([`${PATH_TO_RAW}**!/!*.svg`])
-    .pipe(svgo())
-    .pipe(dest(PATH_TO_SOURCE));
+/* Оптимизация картинок */
+export function optimizeImage () {
+  return src([
+    `${PATH_TO_SOURCE}images/**/*`,
+    `!${PATH_TO_SOURCE}**/README.md`,
+    ])
+    .pipe(imagemin([
+      gifsicle({interlaced: true}),
+      mozjpeg({quality: 75, progressive: true}),
+      optipng({optimizationLevel: 5}),
+      svgo({
+        plugins: [
+          {
+            name: 'removeViewBox',
+            active: true
+          },
+          {
+            name: 'cleanupIDs',
+            active: false
+          }
+        ]
+      })
+    ]))
+    .pipe(dest(`${PATH_TO_DIST}images/`));
 }
 
 /* Перенос статичных файлов */
@@ -99,6 +113,10 @@ export function copyAssets () {
     .pipe(dest(PATH_TO_DIST));
 }
 
+export function lintBem () {
+  return src(`${PATH_TO_DIST}pages/**/*.html`)
+    .pipe(bemlinter())
+}
 
 /* Работа с локальным сервером */
 export function startServer () {
@@ -133,7 +151,7 @@ export function startServer () {
 
   watch(`${PATH_TO_SOURCE}**/*.{html,njk}`, series(createHTML));
   watch(`${PATH_TO_SOURCE}styles/**/*.scss`, series(createStyles));
-  // watch(`${PATH_TO_SOURCE}scripts/!**!/!*.js`, series(processScripts));
+  watch(`${PATH_TO_SOURCE}scripts/**/*.js`, series(createScripts));
   watch(`${PATH_TO_SOURCE}icons/**/*.svg`, series(createStack, reloadServer));
   watch(PATHS_TO_STATIC, series(copyAssets, reloadServer));
 }
@@ -160,11 +178,10 @@ export function buildProd (done) {
     parallel(
       createHTML,
       createStyles,
-      createStack
-      /*processStyles,
-      processScripts,
+      createScripts,
+      optimizeImage,
       createStack,
-      copyAssets,*/
+      copyAssets
     ),
   )(done);
 }
@@ -175,6 +192,7 @@ export function runDev (done) {
     parallel(
       createHTML,
       createStyles,
+      createScripts,
       createStack
     ),
     startServer,
