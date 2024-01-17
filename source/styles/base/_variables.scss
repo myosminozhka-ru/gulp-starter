@@ -1,0 +1,137 @@
+@use 'mixins' as *;
+
+//Font weight
+$weight-black: 900;
+$weight-extra-bold: 800;
+$weight-bold: 700;
+$weight-semi-bold: 600;
+$weight-medium: 500;
+$weight-normal: 400;
+$weight-light: 300;
+$weight-extra-light: 200;
+$weight-thin: 100;
+
+// Typography
+$font-family-base: 'Lato', Arial, sans-serif;
+$base-line-height: 1.5;
+
+//Headings
+$headings-font-family: 'Oswald', Arial, sans-serif;
+$headings-font-weight: $weight-semi-bold;
+$headings-line-height: 1.2;
+$headings-margin-bottom: .9em;
+
+// Font Sizes
+$h1: 36;
+$h2: 32;
+$h3: 28;
+$h4: 24;
+$h1-font-size: remy($h1);
+$h2-font-size: remy($h2);
+$h3-font-size: remy($h3);
+$h4-font-size: remy($h4);
+
+//Colors - цвета проекта, частично помещаются ниже в переменные бустрапа
+$primary-color: #E01F1F;
+$secondary-color: #333333;
+$bright-color: #920164;
+$error-color: #cd1100;
+$base-font-color: #333333;
+$dark-grey-color: #666666;
+$light-grey-color: #F2F2F2;
+
+$grey: #999999;
+$white: #ffffff;
+
+$grey_90: rgba($base-font-color, 0.9);
+$grey_80: rgba($base-font-color, 0.8);
+$grey_70: rgba($base-font-color, 0.7);
+$grey_60: rgba($base-font-color, 0.6);
+$grey_50: rgba($base-font-color, 0.5);
+$grey_20: rgba($base-font-color, 0.2);
+$grey_30: rgba($base-font-color, 0.3);
+
+$box-shadow: -3px -3px 6px #FFFFFF, 3px 3px 10px  rgba(158, 158, 158, .4);
+
+//Border
+$color-border: 1px solid $primary-color;
+
+$base-border-color: #C4C9D8;
+$base-border: 1px solid $base-border-color;
+
+$light-border-color: #E0E0E0;
+$light-border: 1px solid $light-border-color;
+
+$dark-border-color: $dark-grey-color;
+$dark-border: 1px solid $dark-border-color;
+
+//Other
+$trans-duration: .35s;
+$trans-easing: ease-in-out;
+$trans-primary: $trans-duration $trans-easing;
+
+//Bootstrap
+$grid-breakpoints: (
+        xs: 0,
+        xxs: 425px,
+        sm: 576px,
+        md: 768px,
+        lg: 992px,
+        xl: 1200px,
+        xxl: 1440px
+);
+
+$container-max-widths: (
+        sm: 100%,
+        xxs: 100%,
+        md: 100%,
+        lg: 100%,
+        xl: 1140px,
+        xxl: 1360px
+);
+
+//- Colors
+$body-bg: #F2F2F2;
+$body-color: $base-font-color;
+$link-color: $primary-color;
+$primary: $secondary-color;
+$secondary: #f2f2f2;
+$success: #07A751;
+
+//-Border
+$border-radius: remy(12);
+$border-radius-sm: remy(8);
+$border-radius-lg: remy(22);
+$border-radius-xl: remy(32);
+
+//- Btn
+$btn-font-family: $headings-font-family;
+$btn-font-weight: $weight-semi-bold;
+$btn-font-size: remy(14);
+$btn-padding-y: remy(18);
+$btn-padding-x: remy(18);
+$btn-padding-x: 1.125rem;
+$btn-border-radius: remy(40);
+//--lg
+$btn-padding-y-lg: remy(21);
+//$btn-padding-x-lg: remy(20);
+$btn-font-size-lg: remy(14);
+$btn-border-radius-lg: remy(40);
+//--sm
+$btn-padding-y-sm: remy(8);
+//$btn-padding-x-sm: remy(18);
+$btn-font-size-sm: remy(14);
+$btn-border-radius-sm: remy(40);
+
+//- Inputs
+$input-bg: $white;
+$input-border-color: $base-border-color;
+$input-border-width: 1px;
+$input-border-radius: $border-radius-sm;
+$input-height: remy(50);
+$input-placeholder-color: $grey;
+$input-focus-border-color: $secondary-color;
+$input-font-size: remy(16);
+$input-padding-y: remy(12);
+$input-padding-x: remy(12);
+$input-box-shadow: none;

@@ -1,0 +1,22 @@
+@mixin font-face($fontname, $filename, $style: null, $weight: null, $exts: woff2 woff) {
+  $src: null;
+  $extmods: (
+          eot: '?'
+  );
+
+  @each $ext in $exts{
+    $extmod: if(map-has-key($extmods, $ext), $ext + map-get($extmods, $ext), $ext);
+    $src: append($src, url('../../fonts/' + quote($filename + "." + $extmod)) format($ext), comma);
+  }
+
+  @font-face {
+    font-family: quote($fontname);
+    font-style: $style;
+    font-weight: $weight;
+    font-display: swap;
+    src: $src;
+  }
+}
+
+@include font-face('Lato', 'lato/lato-regular', normal, 400);
+@include font-face('Oswald', 'oswald/oswald-regular', normal, 400);

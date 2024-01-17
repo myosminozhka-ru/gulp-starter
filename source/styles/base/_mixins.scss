@@ -1,0 +1,45 @@
+@function remy($pxsize) {
+  @return calc($pxsize / 16) + rem;
+}
+
+// Добавление символа &, если не корневой селектор
+@mixin optional-at-root($selector) {
+  @at-root #{if(not &, $selector, selector-append(&, $selector))} {
+    @content;
+  }
+}
+
+// Плейсхолдер для полей ввода
+@mixin placeholder() {
+  @include optional-at-root('::-webkit-input-placeholder') {
+    @content;
+  }
+
+  @include optional-at-root(':-ms-input-placeholder') {
+    @content;
+  }
+
+  @include optional-at-root('::-moz-placeholder') {
+    @content;
+  }
+}
+
+// Визуальное скрытие элемента
+@mixin sr-only() {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+
+// Круг
+@mixin circle($diameter, $radius: 50%) {
+  width: $diameter;
+  height: $diameter;
+  border-radius: $radius;
+}
