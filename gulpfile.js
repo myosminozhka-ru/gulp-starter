@@ -34,6 +34,7 @@ export function createHTML () {
     `${PATH_TO_SOURCE}/pages/*.html`,
     `${PATH_TO_SOURCE}/*.html`
     ])
+    .pipe(plumber())
     .pipe(includePartials())
     .pipe(dest(`${PATH_TO_DIST}/pages`))
     .pipe(server.stream());
@@ -61,6 +62,7 @@ export function createScripts () {
   const gulpEsbuild = createGulpEsbuild({ incremental: isDevelopment });
 
   return src(`${PATH_TO_SOURCE}js/*.js`)
+    .pipe(plumber())
     .pipe(gulpEsbuild({
       bundle: true,
       format: 'esm',
