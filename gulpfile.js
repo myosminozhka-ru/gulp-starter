@@ -20,13 +20,16 @@ import bemlinter from 'gulp-html-bemlinter';
 const { src, dest, watch, series, parallel } = gulp;
 const sass = gulpSass(dartSass);
 const PATH_TO_SOURCE = './source/';
+const PATH_TO_DEV = './dev-server/';
 const PATH_TO_DIST = './dist/';
 const PATHS_TO_STATIC = [
+  `${PATH_TO_SOURCE}libs/**/*`,
   `${PATH_TO_SOURCE}fonts/**/*.{woff2,woff}`,
   `${PATH_TO_SOURCE}*.ico`,
   `!${PATH_TO_SOURCE}**/README.md`,
 ];
 let isDevelopment = true;
+let OUTPUT_PATH;
 
 /* Работа с HTML - сборка частей и страниц */
 export function createHTML () {
@@ -36,7 +39,7 @@ export function createHTML () {
     ])
     .pipe(plumber())
     .pipe(includePartials())
-    .pipe(dest(`${PATH_TO_DIST}/pages`))
+    .pipe(dest(`${OUTPUT_PATH}`))
     .pipe(server.stream());
 }
 
@@ -53,7 +56,7 @@ export function createStyles () {
     .pipe(rename({
       extname: '.min.css'
     }))
-    .pipe(dest(`${PATH_TO_DIST}styles`, { sourcemaps: isDevelopment }))
+    .pipe(dest(`${OUTPUT_PATH}styles`, { sourcemaps: isDevelopment }))
     .pipe(server.stream());
 }
 
@@ -66,13 +69,12 @@ export function createScripts () {
     .pipe(gulpEsbuild({
       bundle: true,
       format: 'esm',
-      // splitting: true,
       platform: 'browser',
       minify: !isDevelopment,
       sourcemap: isDevelopment,
       target: browserslistToEsbuild(),
     }))
-    .pipe(dest(`${PATH_TO_DIST}js`))
+    .pipe(dest(`${OUTPUT_PATH}js`))
     .pipe(server.stream());
 }
 
@@ -80,7 +82,7 @@ export function createScripts () {
 export function createStack () {
   return src(`${PATH_TO_SOURCE}/icons/**/*.svg`)
     .pipe(stacksvg())
-    .pipe(dest(`${PATH_TO_DIST}images`));
+    .pipe(dest(`${OUTPUT_PATH}images`));
 }
 
 /* Оптимизация картинок */
@@ -111,22 +113,26 @@ export function optimizeImage () {
 
 /* Перенос статичных файлов */
 export function copyAssets () {
-  return src(PATHS_TO_STATIC, { base: PATH_TO_SOURCE })
-    .pipe(dest(PATH_TO_DIST));
+  if(isDevelopment) {
+    return src([
+      `${PATH_TO_SOURCE}libs/**/*`,
+      `!${PATH_TO_SOURCE}**/README.md`,
+    ])
+      .pipe(dest(`${PATH_TO_DEV}libs/`));
+  } else {
+    return src(PATHS_TO_STATIC, { base: PATH_TO_SOURCE })
+      .pipe(dest(PATH_TO_DIST));
+  }
 }
 
-export function lintBem () {
-  return src(`${PATH_TO_DIST}pages/**/*.html`)
-    .pipe(bemlinter())
-}
 
 /* Работа с локальным сервером */
 export function startServer () {
   server.init({
     server: {
-      baseDir: `${PATH_TO_DIST}`
+      baseDir: `${PATH_TO_DEV}`
     },
-    startPath: `pages/index.html`,
+    startPath: `index.html`,
     serveStatic: [
       {
         route: '/fonts',
@@ -153,8 +159,9 @@ export function startServer () {
 
   watch(`${PATH_TO_SOURCE}**/*.{html,njk}`, series(createHTML));
   watch(`${PATH_TO_SOURCE}styles/**/*.scss`, series(createStyles));
-  watch(`${PATH_TO_SOURCE}scripts/**/*.js`, series(createScripts));
+  watch(`${PATH_TO_SOURCE}js/**/*.js`, series(createScripts));
   watch(`${PATH_TO_SOURCE}icons/**/*.svg`, series(createStack, reloadServer));
+  watch(`${PATH_TO_SOURCE}images/**/*`, reloadServer);
   watch(PATHS_TO_STATIC, series(copyAssets, reloadServer));
 }
 
@@ -175,6 +182,7 @@ export function removeDist (done) {
 /* Полная сборка */
 export function buildProd (done) {
   isDevelopment = false;
+  OUTPUT_PATH = isDevelopment ? PATH_TO_DEV : PATH_TO_DIST;
   series(
     removeDist,
     parallel(
@@ -189,13 +197,15 @@ export function buildProd (done) {
 }
 /* Сборка для разработки */
 export function runDev (done) {
+  OUTPUT_PATH = isDevelopment ? PATH_TO_DEV : PATH_TO_DIST
   series(
     removeDist,
     parallel(
       createHTML,
       createStyles,
       createScripts,
-      createStack
+      createStack,
+      copyAssets
     ),
     startServer,
   )(done);

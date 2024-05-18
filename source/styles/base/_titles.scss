@@ -1,0 +1,18 @@
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6{
+  font-family: $font-family-base;
+  font-weight: $weight-bold;
+  margin-top: .5em;
+  margin-bottom: .85em;
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+@each $name, $value in $titles {
+  #{$name}, .#{$name} {
+    font-size: remy(map-get($titles-mob, $name));
+    @include media-breakpoint-up(md) {
+      font-size: remy($value);
+    }
+  }
+}
